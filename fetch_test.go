@@ -1,4 +1,4 @@
-// Copyright (C) 2019 Luiz de Milon (kori)
+// Copyright (C) 2020 Pascal Below (spezifisch)
 // Copyright (C) 2020 Pascal Below (spezifisch)
 
 // This program is free software: you can redistribute it and/or modify
@@ -16,18 +16,21 @@
 
 package listenbrainz
 
-// source: https://listenbrainz.readthedocs.io/en/latest/dev/api.html#constants
-const (
-	// Default API endpoint if you're using the official server.
-	DefaultAPIUrl = "https://api.listenbrainz.org"
-	// Maximum overall listen size in bytes, to prevent egregious spamming.
-	MaxListenSize = 10240
-	// The maximum number of listens returned in a single GET request.
-	MaxItemsPerGet = 100
-	// The default number of listens returned in a single GET request.
-	DefaultItemsPerGet = 25
-	// The maximum number of tags per listen.
-	MaxTagsPerListen = 50
-	// The maximum length of a tag
-	MaxTagSize = 64
+import (
+	"testing"
 )
+
+func TestGetListenHistory(t *testing.T) {
+	api := API{
+		URL:   "http://127.0.0.1:0",
+		Token: "baz",
+	}
+
+	resp, err := api.GetListenHistory("bob")
+	if err == nil {
+		t.Error("expected error")
+	}
+	if resp != nil {
+		t.Error("expected nil response")
+	}
+}

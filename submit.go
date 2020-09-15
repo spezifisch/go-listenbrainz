@@ -1,4 +1,5 @@
 // Copyright (C) 2019 Luiz de Milon (kori)
+// Copyright (C) 2020 Pascal Below (spezifisch)
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -39,9 +40,10 @@ type Payload struct {
 
 // Track is a helper struct for marshalling the JSON payload
 type Track struct {
-	Title  string `json:"track_name"`
-	Artist string `json:"artist_name"`
-	Album  string `json:"release_name"`
+	Title          string                 `json:"track_name"`
+	Artist         string                 `json:"artist_name"`
+	Album          string                 `json:"release_name"`
+	AdditionalInfo map[string]interface{} `json:"additional_info"`
 }
 
 // FormatPlayingNow formats a Track as a playing_now Submission.
@@ -90,17 +92,30 @@ func GetSubmissionTime(length int) (int, error) {
 	return p, nil
 }
 
+// API endpoint specification
+type API struct {
+	URL   string
+	Token string
+}
+
+// GetDefaultAPI returns the default ListenBrainz API endpoint
+func GetDefaultAPI() API {
+	return API{
+		URL: DefaultAPIUrl,
+	}
+}
+
 // SubmitRequest creates and executes a request containing the JSON that's passed,
 // to the account delineated by the token.
-func SubmitRequest(json []byte, token string) (*http.Response, error) {
-	url := "https://api.listenbrainz.org/1/submit-listens"
+func (api API) SubmitRequest(json []byte) (*http.Response, error) {
+	url := api.URL + "/1/submit-listens"
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(json))
 	if err != nil {
 		return nil, err
 	}
 
-	req.Header.Set("Authorization", "Token "+token)
+	req.Header.Set("Authorization", "Token "+api.Token)
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
@@ -108,22 +123,22 @@ func SubmitRequest(json []byte, token string) (*http.Response, error) {
 }
 
 // SubmitPlayingNow posts the given track to ListenBrainz as what's playing now.
-func SubmitPlayingNow(track Track, token string) (*http.Response, error) {
+func (api API) SubmitPlayingNow(track Track) (*http.Response, error) {
 	json, err := json.Marshal(FormatPlayingNow(track))
 	if err != nil {
 		return nil, err
 	}
 
-	return SubmitRequest(json, token)
+	return api.SubmitRequest(json)
 }
 
 // SubmitSingle posts the given track to ListenBrainz as a single listen
 // with the given time.
-func SubmitSingle(track Track, token string, time int64) (*http.Response, error) {
+func (api API) SubmitSingle(track Track, time int64) (*http.Response, error) {
 	json, err := json.Marshal(FormatSingle(track, time))
 	if err != nil {
 		return nil, err
 	}
 
-	return SubmitRequest(json, token)
+	return api.SubmitRequest(json)
 }

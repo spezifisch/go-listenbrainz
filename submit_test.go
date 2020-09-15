@@ -1,4 +1,5 @@
 // Copyright (C) 2019 Luiz de Milon (kori)
+// Copyright (C) 2020 Pascal Below (spezifisch)
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -88,5 +89,58 @@ func TestFormatSingle(t *testing.T) {
 
 	if !reflect.DeepEqual(ts, s) {
 		t.Error("Expected", ts, "got", s)
+	}
+}
+
+func TestDefaultEndpoint(t *testing.T) {
+	api := GetDefaultAPI()
+	api.Token = "foo"
+
+	exp := "https://api.listenbrainz.org"
+	if api.URL != exp {
+		t.Error("Expected", exp, "got", api.URL)
+	}
+}
+
+func TestSubmitRequest(t *testing.T) {
+	api := API{
+		URL:   "http://127.0.0.1:0",
+		Token: "foo",
+	}
+
+	track := Track{
+		Title:  "b",
+		Artist: "a",
+		Album:  "c",
+	}
+
+	resp, err := api.SubmitPlayingNow(track)
+	if err == nil {
+		t.Error("expected error")
+	}
+	if resp != nil {
+		t.Error("expected nil response")
+	}
+}
+
+func TestSubmitSingle(t *testing.T) {
+	api := API{
+		URL:   "http://127.0.0.1:0",
+		Token: "bar",
+	}
+
+	track := Track{
+		Title:  "a",
+		Artist: "c",
+		Album:  "b",
+	}
+	time := int64(1234567890)
+
+	resp, err := api.SubmitSingle(track, time)
+	if err == nil {
+		t.Error("expected error")
+	}
+	if resp != nil {
+		t.Error("expected nil response")
 	}
 }
